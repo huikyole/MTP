@@ -1,0 +1,15 @@
+# Configuration file for the MTP-NCAR observation in June 2014
+# There are 3660 cases. Only cases whose flight altitude is higher than 7 km 
+# can be retrieved.
+case:
+    case_start: 3000
+    case_end: 3000
+
+output_file: output_case3000.pickle   
+# The vertical profile plot is drawn only for the first case
+figure:
+    draw_figure: True
+    map_filename: map3000
+    profile_filename: case3000_profile
+   
+
