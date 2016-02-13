@@ -12,9 +12,10 @@ def MTP_obs_extract(scan_number):
     lon = f.variables['lon'][scan_number]
     lat = f.variables['lat'][scan_number]
     hgt = f.variables['hgt'][scan_number]
+    out_temp = f.variables['outside_temperature'][scan_number]
     mtp_data = f.variables['mtp_data'][:,:,scan_number]
 
-    return time, lon, lat, hgt, mtp_data
+    return time, lon, lat, hgt, out_temp, mtp_data
 
 def merra_climatology_and_covariance(time, lon, lat):
     '''

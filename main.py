@@ -26,7 +26,7 @@ def retrieve_MTP_temp(case, broadening, output_pickle='', broadening_altitude=Fa
     angles = np.array(angles[::-1])
     angles_rad = math.pi/180.*angles
 
-    time, lon, lat, hgt, mtp_data = dp.MTP_obs_extract(case)  # hgt: flight altitude
+    time, lon, lat, hgt, out_temp, mtp_data = dp.MTP_obs_extract(case)  # hgt: flight altitude
 
     temp_merra, q_merra, heights_merra = dp.merra_climatology_and_covariance(time, lon, lat)
 
