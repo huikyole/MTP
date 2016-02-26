@@ -61,7 +61,6 @@ def retrieve_MTP_temp(case, broadening, output_pickle='', broadening_altitude=Fa
     	y[ii] = mtp_data[ifreq, iangle]
 
 	# MAP solution
-
     T_est=np.matrix(clim_obs).transpose()+G*(np.matrix(y).transpose()-A*(np.matrix(clim_obs).transpose()))
 
 
@@ -105,7 +104,7 @@ latitudes = np.zeros(ncase)-999.
 # Retrieve a vertical temperature profile when flight altitude is higher than 7 km
 for icase in np.arange(start, start+ncase):
     print 'case_number:',icase
-    time, lon, lat, hgt, mtp_data = dp.MTP_obs_extract(icase)  # hgt: flight altitude
+    time, lon, lat, hgt, out_temp, mtp_data = dp.MTP_obs_extract(icase)  # hgt: flight altitude
     if hgt >= 7.:
         array[icase-start,:] = retrieve_MTP_temp(icase,np.repeat(0., 20))
         longitudes[icase-start] = lon
