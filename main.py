@@ -28,7 +28,7 @@ def retrieve_MTP_temp(case, broadening, output_pickle='', broadening_altitude=Fa
 
     time, lon, lat, hgt, out_temp, mtp_data = dp.MTP_obs_extract(case)  # hgt: flight altitude
 
-    temp_merra, q_merra, heights_merra = dp.merra_climatology_and_covariance(time, lon, lat)
+    temp_merra, q_merra, heights_merra = dp.merra_climatology_and_covariance('./data/merra2_temperature_and_moisture_June01-June06_1979-2014.nc',time, lon, lat)
 
     temp_obs, heights = utils.interpolate_temperature(heights_merra, temp_merra, hgt)
     q_obs, heights = utils.interpolate_humidity(heights_merra, q_merra, hgt)

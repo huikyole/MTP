@@ -17,12 +17,12 @@ def MTP_obs_extract(scan_number):
 
     return time, lon, lat, hgt, out_temp, mtp_data
 
-def merra_climatology_and_covariance(time, lon, lat):
+def merra_climatology_and_covariance(filename, time, lon, lat):
     '''
     Subset the merra data for time, lon, and lat, then 
     return interpolated climatological profile and covariance
     ''' 
-    f = Dataset('./data/merra_temperature_and_moisture_June01-June06_1979-2014.nc')
+    f = Dataset(filename)
     lats= f.variables['lat'][:]
     lons= f.variables['lon'][:]
     hgts= f.variables['height'][:]

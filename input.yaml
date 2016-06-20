@@ -2,14 +2,14 @@
 # There are 3660 cases. Only cases whose flight altitude is higher than 7 km 
 # can be retrieved.
 case:
-    case_start: 3000
-    case_end: 3000
+    case_start: 500
+    case_end: 500
 
-output_file: output_case3000.pickle   
+output_file: output_case500.pickle   
 # The vertical profile plot is drawn only for the first case
 figure:
     draw_figure: True
-    map_filename: map3000
-    profile_filename: case3000_profile
+    map_filename: map500
+    profile_filename: case500_profile
    
 
