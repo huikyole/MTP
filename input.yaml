@@ -1,15 +1,9 @@
-# Configuration file for the MTP-NCAR observation in June 2014
-# There are 3660 cases. Only cases whose flight altitude is higher than 7 km 
-# can be retrieved.
-case:
-    case_start: 500
-    case_end: 500
+# Configuration file for the MTHP ground observation
+observation_info:
+    longitude: 241.83   
+    latitude: 34.1986
+    altitude: 0.341
+    time: 06-21-2016_04:21:00   # UTC
 
-output_file: output_case500.pickle   
-# The vertical profile plot is drawn only for the first case
-figure:
-    draw_figure: True
-    map_filename: map500
-    profile_filename: case500_profile
    
 

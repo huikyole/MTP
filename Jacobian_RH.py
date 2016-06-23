@@ -2,7 +2,11 @@ import numpy as np
 from microwave_absorption_coeff import gas_absr
 from scipy import stats
 
-def calculate_K(mtp_freq, angles_rad, heights, flight_lev, temp_obs, clim_obs, clim_q, bandwidth=np.repeat(0, 21)):
+def RH_to_q(RH, T):
+    pws = np.exp(77.3450+0.0057*T-7235/T)/T**(8.2)   # saturation pressure of water vapor 
+    return RH*pws*2.2/T
+
+def calculate_K_RH(mtp_freq, angles_rad, heights, flight_lev, rh_obs, clim_obs, clim_temp, bandwidth=np.repeat(0, 21)):
     '''
     Calculate Jacobian matrix (K) of the forward matrix(A)
     K_ij = dy_i/dx_j at x = clim_obs
@@ -17,7 +21,7 @@ def calculate_K(mtp_freq, angles_rad, heights, flight_lev, temp_obs, clim_obs, c
     N = nfreq*nangle                    
     M = len(heights)
 
-    nyear = temp_obs.shape[0]
+    nyear = rh_obs.shape[0]
 
     K = np.zeros([N, M])
 
@@ -26,16 +30,22 @@ def calculate_K(mtp_freq, angles_rad, heights, flight_lev, temp_obs, clim_obs, c
 
     angles = np.repeat(angles_rad, nfreq)
 
+    q = np.zeros([nyear, M])
     for iz in np.arange(M):
+        for iyear in np.arange(nyear):
+            q[iyear, iz] = RH_to_q(rh_obs[iyear, iz], clim_temp[iz]) 
+
+    for iz in np.arange(M):
+        q_clim = RH_to_q(clim_obs[iz], clim_temp[iz])
         for ifreq in np.arange(nfreq):
             if bandwidth[iz] > 0:
                 for freq in np.linspace(-bandwidth[iz], bandwidth[iz] ,num_of_band) + mtp_freq[ifreq]:
-                    absr_coeff_clim[ifreq, iz] = absr_coeff_clim[ifreq, iz] + gas_absr(freq, clim_obs[iz], pressure[iz], clim_q[iz])/num_of_band
+                    absr_coeff_clim[ifreq, iz] = absr_coeff_clim[ifreq, iz] + gas_absr(freq, clim_temp[iz], pressure[iz], q_clim)/num_of_band
             # broadening should be considered here
             else:
-                absr_coeff_clim[ifreq, iz] = gas_absr(mtp_freq[ifreq], clim_obs[iz], pressure[iz], clim_q[iz])   
+                absr_coeff_clim[ifreq, iz] = gas_absr(mtp_freq[ifreq], clim_temp[iz], pressure[iz], q_clim)   
     A = calculate_forward_matrix(absr_coeff_clim, heights, angles)
-    y0 = np.array(np.matrix(A)*np.matrix(clim_obs).transpose()).ravel()
+    y0 = np.array(np.matrix(A)*np.matrix(clim_temp).transpose()).ravel()
 
     for iz in np.arange(M):    # for each x_j
         temp_array = np.zeros(M)
@@ -48,17 +58,15 @@ def calculate_K(mtp_freq, angles_rad, heights, flight_lev, temp_obs, clim_obs, c
             for ifreq in np.arange(nfreq):
                 if bandwidth[iz] > 0: 
                     for freq in np.linspace(-bandwidth[iz], bandwidth[iz] ,num_of_band) + mtp_freq[ifreq]:
-                        absr_coeff[ifreq, iz] = absr_coeff[ifreq, iz]+gas_absr(freq, temp_obs[iyear,iz], pressure[iz], clim_q[iz])/num_of_band   # absr_coeff[:,iz] is different
+                        absr_coeff[ifreq, iz] = absr_coeff[ifreq, iz]+gas_absr(freq, clim_temp[iz], pressure[iz], q[iyear, iz])/num_of_band   # absr_coeff[:,iz] is different
                 else: 
-                    absr_coeff[ifreq, iz] = gas_absr(mtp_freq[ifreq], temp_obs[iyear,iz], pressure[iz], clim_q[iz])
-            temp_array[:] = clim_obs[:]
-            temp_array[iz] = temp_obs[iyear,iz]
+                    absr_coeff[ifreq, iz] = gas_absr(mtp_freq[ifreq], clim_temp[iz], pressure[iz], q[iyear, iz])
             temp_A = calculate_forward_matrix(absr_coeff, heights, angles) # temporary forward model matrix
-            y[iyear,:] = np.array(np.matrix(temp_A)*np.matrix(temp_array).transpose()).ravel()
+            y[iyear,:] = np.array(np.matrix(temp_A)*np.matrix(clim_temp).transpose()).ravel()
 
         for iobs in np.arange(N):
             #slope, intercept, _, _, _ = stats.linregress(temp_obs[:,iz], y[:,iobs])     # non-zero intercept
-            x = temp_obs[:,iz]-clim_obs[iz]
+            x = rh_obs[:,iz] - clim_obs[iz]
             x = x[:,np.newaxis] 
             slope, _, _, _ = np.linalg.lstsq(x, y[:,iobs]-y0[iobs])
             K[iobs, iz] = slope 

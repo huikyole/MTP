@@ -1,5 +1,7 @@
 import numpy as np
+import numpy.ma as ma
 from netCDF4 import Dataset, num2date
+from datetime import datetime
 
 def MTP_obs_extract(scan_number):
     '''
@@ -17,34 +19,32 @@ def MTP_obs_extract(scan_number):
 
     return time, lon, lat, hgt, out_temp, mtp_data
 
-def merra_climatology_and_covariance(filename, time, lon, lat):
+def extract_merra_profiles(filename, time, lon, lat):
     '''
     Subset the merra data for time, lon, and lat, then 
     return interpolated climatological profile and covariance
     ''' 
     f = Dataset(filename)
-    lats= f.variables['lat'][:]
-    lons= f.variables['lon'][:]
-    hgts= f.variables['height'][:]
+    merra_lats= f.variables['lat'][:]
+    merra_lons= f.variables['lon'][:]
+    merra_hgts= f.variables['height'][:]
+    merra_time0 = f.variables['time']
+    merra_time = num2date(merra_time0[:], units=merra_time0.units)[-1,:,:]
+    year_end = merra_time[0,0].year 
+    new_date = datetime(year_end, time.month, time.day, time.hour, time.minute, time.second)
+    time_diff = abs(merra_time - new_date) 
+    day_index, hour_index = np.where(time_diff == np.min(time_diff))
 
-    day_index = time.day-1
-
-    hours = np.arange(9)*3
-    hour_index = np.min(np.where(abs(hours - time.hour).min() == abs(hours - time.hour))[0])
-    if hour_index == 8:
-        day_index = day_index+1 
-        hour_index = 0
- 
-    y_index, x_index = np.where((lats - lat)**2+(lons - lon)**2 == np.min((lats - lat)**2+(lons - lon)**2))
+    y_index, x_index = np.where((merra_lats - lat)**2+(merra_lons - lon)**2 == np.min((merra_lats - lat)**2+(merra_lons - lon)**2))
     if len(y_index) >=2:
         y_index = y_index[0]
         x_index = x_index[0]
     
-
     T_data0 = f.variables['T'][:, day_index, hour_index, :, y_index, x_index]
     Q_data0 = f.variables['q'][:, day_index, hour_index, :, y_index, x_index]
+    RH_data0 = f.variables['RH'][:, day_index, hour_index, :, y_index, x_index]
  
-    return np.squeeze(T_data0), np.squeeze(Q_data0), hgts
+    return ma.squeeze(T_data0), ma.squeeze(Q_data0), ma.squeeze(RH_data0),merra_hgts
 
 
 
